@@ -148,35 +148,12 @@ class VscaleAPI:
         self.token = token
 
         # Initialize default values
-        if 'version' in kwargs:
-            self.version = kwargs['version']
-        else:
-            self.version = 1
-
-        if 'url' in kwargs:
-            self.url = kwargs['url']
-        else:
-            self.url = 'https://api.vscale.io/v%s' % self.version
-
-        if 'blocking' in kwargs:
-            self.blocking = kwargs['blocking']
-        else:
-            self.blocking = True
-
-        if 'timeout' in kwargs:
-            self.timeout = kwargs['timeout']
-        else:
-            self.timeout = 300
-
-        if 'poll_interval' in kwargs:
-            self.poll_interval = kwargs['poll_interval']
-        else:
-            self.poll_interval = 5
-
-        if 'dry_run' in kwargs:
-            self.dry_run = kwargs['dry_run']
-        else:
-            self.dry_run = False
+        self.version = kwargs.get('version', 1)
+        self.url = kwargs.get('url', 'https://api.vscale.io/v%s' % self.version)
+        self.blocking = kwargs.get('blocking', True)
+        self.timeout = kwargs.get('timeout', 300)
+        self.poll_interval = kwargs.get('poll_interval', 5)
+        self.dry_run = kwargs.get('dry_run', False)
 
 
     def _rq(self, method, path, payload=None):
@@ -322,7 +299,8 @@ def main():
             image=dict(type='str'),
             plan=dict(type='str'),
             location=dict(type='str'),
-            collect_facts=dict(type='bool', default=False)
+            collect_facts=dict(type='bool', default=False),
+            url=dict(type='str', default=None)
         ),
         required_one_of=(
             ['name'],),
@@ -336,7 +314,7 @@ def main():
     # Initialize VscaleAPI
     token = module.params['token'] if module.params['token'] else os.environ['VS_API_KEY'] if 'VS_API_KEY' in os.environ else ''
     try:
-        vscale = VscaleAPI(token)
+        vscale = VscaleAPI(token, url=module.params['url'])
     except VscaleAPIException, e:
         module.fail_json(changed=False, msg="No token given")
 
